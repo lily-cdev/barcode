@@ -1,10 +1,11 @@
 #include "Wrapper.h"
-#define POSSIBLEFLAGS 3
+#define POSSIBLEFLAGS 4
 
 enum Types {
     None,
     Code39,
-    Code128
+    Code128,
+    ITF
 };
 
 const unsigned char Black[4] = { 0, 0, 0, 0 };
@@ -22,7 +23,8 @@ typedef struct {
 Flag Flags[POSSIBLEFLAGS] = {
     { &Adding_Quietzone, 1, "-q", 2 },
     { &Barcode_Type, Code39, "-c39", 4 },
-    { &Barcode_Type, Code128, "-c128", 5 }
+    { &Barcode_Type, Code128, "-c128", 5 },
+    { &Barcode_Type, ITF, "-itf", 4 }
 };
 
 int main(int Argc, char* Argv[]) {
@@ -57,6 +59,12 @@ int main(int Argc, char* Argv[]) {
         return 0;
     case Code128:
         Generate128(Argv[1]);
+        break;
+    case ITF:
+        if (GenerateITF(Argv[1]) == 1) {
+            puts("error -> uneven amount of digits");
+            return 1;
+        }
         break;
     }
     return 0;

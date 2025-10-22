@@ -35,7 +35,7 @@ inline void Write_BMP(const uint32_t Width, unsigned char* Row) {
 	uint32_t File_Size = Image_Size + DATAOFFSET;
 	uint32_t Data_Offset = DATAOFFSET;
 	FILE* Yield = NULL;
-	errno_t Check = fopen_s(&Yield, OUTPUTNAME, "wb");
+	int Check = fopen_s(&Yield, OUTPUTNAME, "wb");
 	if (Check != 0) {
 		return;
 	}
@@ -70,3 +70,4 @@ inline void Write_BMP(const uint32_t Width, unsigned char* Row) {
 
 void Generate39(char* Input);
 void Generate128(char* Input);
+uint8_t GenerateITF(char* Input);
