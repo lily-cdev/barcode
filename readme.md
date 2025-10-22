@@ -4,6 +4,6 @@ having a desc here would be pretty cool<br>
 - "-c39" → barcode39; no checksum<br>
 - "-c128" → barcode128; modulo 103 checksum<br>
 - "-itf" → interleaved 2 of 5; no checksum<br>
-- idk whatever i add next
+- idk whatever i add next<br>
 <b>Other Flags</b><br>
 - "-q" → insert a quietzone around the barcode
