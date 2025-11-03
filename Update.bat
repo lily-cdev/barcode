@@ -1,3 +1,5 @@
+rmdir Debug /s /q
+mkdir Debug
 git init
 git add .
 git config --global user.email "therealarcticsnow@gmail.com"
