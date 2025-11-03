@@ -1,3 +1,4 @@
+@echo off
 rmdir Debug /s /q
 mkdir Debug
 git init
