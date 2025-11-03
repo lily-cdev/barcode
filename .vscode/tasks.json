@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "commence the cylly",
+            "type": "shell",
+            "command": "${workspaceFolder}\\Build.bat",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

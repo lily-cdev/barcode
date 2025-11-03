@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "stdint.h": "c",
+        "wrapper.h": "c",
+        "stdbool.h": "c",
+        "ctype.h": "c",
+        "stdlib.h": "c",
+        "vcruntime.h": "c"
+    }
+}

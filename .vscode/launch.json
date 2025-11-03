@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Debug/CLI_BG.exe",
+            "cwd": "${workspaceFolder}/Debug",
+            "console": "integratedTerminal",
+            "args": [ "kt209718886g", "-q2" ]
+        }
+    ]
+}
