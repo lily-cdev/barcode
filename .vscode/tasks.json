@@ -4,7 +4,7 @@
         {
             "label": "commence the cylly",
             "type": "shell",
-            "command": "${workspaceFolder}\\Build.bat",
+            "command": "${workspaceFolder}/build.sh",
             "group": "build",
             "problemMatcher": []
         }

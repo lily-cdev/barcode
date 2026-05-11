@@ -1,4 +1,4 @@
-#include "Wrapper.h"
+#include "../sublinker/wrapper.h"
 
 #define CHUNKS 106
 #define CHUNKSIZE 6
@@ -79,17 +79,17 @@ struct Chunk Lookup_Table[CHUNKS] = {
 };
 
 bool Scan_Charset(const uint8_t Set, uint8_t* Position, char Candidate1, char Candidate2) {
-	for (uint8_t Counter = 0; Counter < CHUNKS; Counter++) {
-		if ((Set == Set_A && Lookup_Table[Counter].Code_A == Candidate1) ||
-			(Set == Set_B && Lookup_Table[Counter].Code_B == Candidate1)) {
-			*Position = Counter;
+	for (uint8_t C1 = 0; C1 < CHUNKS; C1++) {
+		if ((Set == Set_A && Lookup_Table[C1].Code_A == Candidate1) || (Set == Set_B && Lookup_Table[
+			C1].Code_B == Candidate1)) {
+			*Position = C1;
 			return true;
 		} else if (Set == Set_C) {
 			if (Is_Digit(Candidate1) && Is_Digit(Candidate2)) {
-				uint8_t Value = (((uint8_t)Candidate1 - (uint8_t)'0') * 10) +
-					((uint8_t)Candidate2 - (uint8_t)'0');
-				if (Lookup_Table[Counter].Code_C == Value) {
-					*Position = Counter;
+				uint8_t Value = (((uint8_t)Candidate1 - (uint8_t)'0') * 10) + ((uint8_t)Candidate2 -
+					(uint8_t)'0');
+				if (Lookup_Table[C1].Code_C == Value) {
+					*Position = C1;
 					return true;
 				}
 			}
@@ -103,8 +103,8 @@ const uint8_t Full_Stop[7] = { 2, 3, 3, 1, 1, 1, 2 };
 void Apply_Chunk(const bool Writing, uint32_t* Position, uint32_t* Index,
 	uint8_t* Content, uint8_t Chunk[CHUNKSIZE], const uint8_t Increment) {
 	if (Writing) {
-		for (uint8_t Counter = 0; Counter < CHUNKSIZE; Counter++) {
-			Content[*Position + Counter] = Chunk[Counter];
+		for (uint8_t C1 = 0; C1 < CHUNKSIZE; C1++) {
+			Content[*Position + C1] = Chunk[C1];
 		}
 	}
 	*Position += CHUNKSIZE;
@@ -122,18 +122,15 @@ uint32_t Encode(uint8_t* Data, const bool Writing, uint8_t* Barcode, const int C
 	uint32_t Index = 0;
 	uint64_t Checksum = STARTSETB;
 	uint32_t Checksum_Index = 1;
-	Apply_Chunk(Writing, &Bars, &Index, Barcode, Lookup_Table
-		[STARTSETB].Barcode, 0);
+	Apply_Chunk(Writing, &Bars, &Index, Barcode, Lookup_Table[STARTSETB].Barcode, 0);
 	uint8_t Selected_Charset = Set_B;
 	while (Index < Cap) {
 		uint8_t Queried_Charset = None;
 		if (Selected_Charset == Set_C) {
 			uint8_t Position = 0;
-			if (Index < Cap - 1 && Is_Digit(Data[Index]) && Is_Digit(
-				Data[Index + 1]) && Scan_Charset(Selected_Charset,
-					&Position, Data[Index], Data[Index + 1])) {
-				Apply_Chunk(Writing, &Bars, &Index, Barcode,
-					Lookup_Table[Position].Barcode, 2);
+			if (Index < Cap - 1 && Is_Digit(Data[Index]) && Is_Digit(Data[Index + 1]) && Scan_Charset(
+				Selected_Charset, &Position, Data[Index], Data[Index + 1])) {
+				Apply_Chunk(Writing, &Bars, &Index, Barcode, Lookup_Table[Position].Barcode, 2);
 				Increment_Checksum(&Checksum, &Checksum_Index, Position);
 			} else {
 				Queried_Charset = Set_B;
@@ -141,8 +138,7 @@ uint32_t Encode(uint8_t* Data, const bool Writing, uint8_t* Barcode, const int C
 		} else {
 			uint8_t Position = 0;
 			if (Scan_Charset(Selected_Charset, &Position, Data[Index], 0)) {
-				Apply_Chunk(Writing, &Bars, &Index, Barcode,
-					Lookup_Table[Position].Barcode, 1);
+				Apply_Chunk(Writing, &Bars, &Index, Barcode, Lookup_Table[Position].Barcode, 1);
 				Increment_Checksum(&Checksum, &Checksum_Index, Position);
 			} else {
 				if (Selected_Charset == Set_A) {
@@ -162,18 +158,17 @@ uint32_t Encode(uint8_t* Data, const bool Writing, uint8_t* Barcode, const int C
 			}
 		}
 		if (Queried_Charset != None) {
-			Apply_Chunk(Writing, &Bars, &Index, Barcode,
-				Lookup_Table[Set_Exchangers[Queried_Charset - 1]].Barcode, 0);	
+			Apply_Chunk(Writing, &Bars, &Index, Barcode, Lookup_Table[Set_Exchangers[Queried_Charset -
+				1]].Barcode, 0);	
 			Increment_Checksum(&Checksum, &Checksum_Index, Set_Exchangers[Queried_Charset - 1]);
 			Selected_Charset = Queried_Charset;
 		}
 	}
 	Checksum %= 103;
-	Apply_Chunk(Writing, &Bars, &Index, Barcode,
-		Lookup_Table[Checksum].Barcode, 0);
+	Apply_Chunk(Writing, &Bars, &Index, Barcode, Lookup_Table[Checksum].Barcode, 0);
 	if (Writing) {
-		for (uint8_t Counter = 0; Counter < CHUNKSIZE + 1; Counter++) {
-			Barcode[Bars + Counter] = Full_Stop[Counter];
+		for (uint8_t C1 = 0; C1 < CHUNKSIZE + 1; C1++) {
+			Barcode[Bars + C1] = Full_Stop[C1];
 		}
 	}
 	Bars += CHUNKSIZE + 1;
@@ -191,9 +186,9 @@ void Generate128(char* Input) {
 	}
 	uint8_t* Content = malloc(sizeof(uint8_t) * Characters);
 	uint32_t Ticker = 0;
-	for (uint32_t Counter = 0; Counter <= Raw_Characters; Counter++) {
-		if ((int32_t)Input[Counter] > 0 && (int32_t)Input[Counter] < 128) {
-			Content[Ticker] = (uint8_t)Input[Counter];
+	for (uint32_t C1 = 0; C1 <= Raw_Characters; C1++) {
+		if ((int32_t)Input[C1] > 0 && (int32_t)Input[C1] < 128) {
+			Content[Ticker] = (uint8_t)Input[C1];
 			Ticker++;
 		}
 	}
@@ -201,26 +196,19 @@ void Generate128(char* Input) {
 	uint8_t* Barcode = malloc(sizeof(uint8_t) * Bars);
 	Encode(Content, true, Barcode, Characters);
 	uint32_t Width = 0;
-	for (uint32_t Counter1 = 0; Counter1 < Bars; Counter1++) {
-		for (uint8_t Counter2 = 0; Counter2 < Barcode[Counter1]; Counter2++) {
+	for (uint32_t C1 = 0; C1 < Bars; C1++) {
+		for (uint8_t C2 = 0; C2 < Barcode[C1]; C2++) {
 			Width++;
 		}
 	}
-	unsigned char* Data_Row = calloc((((Width + 7) / 8) + 3) & ~3, sizeof(char));
+	bool* Data_Row = malloc(sizeof(bool) * Width);
 	uint32_t Index = 0;
 	bool White = false;
-	for (uint32_t Counter1 = 0; Counter1 < Bars; Counter1++) {
-		for (uint8_t Counter2 = 0; Counter2 < Barcode[Counter1]; Counter2++) {
-			uint32_t Byte_Index = Index / 8;
-			uint8_t Bit_Index = 7 - (Index % 8);
-			if (White) {
-				Data_Row[Byte_Index] &= ~(1 << Bit_Index);					
-			} else {
-				Data_Row[Byte_Index] |= (1 << Bit_Index);
-			}
+	for (uint32_t C1 = 0; C1 < Bars; C1++) {
+		for (uint8_t C2 = 0; C2 < Barcode[C1]; C2++) {
+			Data_Row[Index] = (C1 & 1);
 			Index++;
 		}
-		White = !White;
 	}
 	Write_BMP(Width, Data_Row);
 	free(Data_Row);

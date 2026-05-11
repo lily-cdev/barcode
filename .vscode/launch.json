@@ -3,12 +3,11 @@
     "configurations": [
         {
             "name": "Debug",
-            "type": "cppvsdbg",
+            "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/Debug/CLI_BG.exe",
-            "cwd": "${workspaceFolder}/Debug",
-            "console": "integratedTerminal",
-            "args": [ "kt209718886g", "-q2" ]
+            "program": "${workspaceFolder}/debug/cli_bg",
+            "cwd": "${workspaceFolder}/debug",
+            "args": [ "Wikipedia, the free encyclopedia", "-q16", "-dm" ]
         }
     ]
 }

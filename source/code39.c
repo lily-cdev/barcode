@@ -1,10 +1,10 @@
-#include "Wrapper.h"
+#include "../sublinker/wrapper.h"
 
-#define CHARACTERS 43
-#define INVALID 250
-#define STRIPCODELENGTH 9
-#define SUBCODELENGTH 10
-#define WIDEMULTIPLIER 3
+#define characters 43
+#define invalid 250
+#define stripcode_len 9
+#define subcode_len 10
+#define wide_multiplier 3
 
 enum Bar {
 	SW,
@@ -13,12 +13,12 @@ enum Bar {
 	LB
 };
 
-const char Allowed[CHARACTERS] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+const char Allowed[characters] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
 	'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '-', '.',
 	'$', '/', '+', '%', ' ' };
 
-const uint8_t Codes[CHARACTERS][STRIPCODELENGTH] = {
+const uint8_t Codes[characters][stripcode_len] = {
 	{ SB, SW, SB, LW, LB, SW, LB, SW, SB }, { LB, SW, SB, LW, SB, SW, SB, SW, LB },
 	{ SB, SW, LB, LW, SB, SW, SB, SW, LB }, { LB, SW, LB, LW, SB, SW, SB, SW, SB },
 	{ SB, SW, SB, LW, LB, SW, SB, SW, LB }, { LB, SW, SB, LW, LB, SW, SB, SW, SB },
@@ -43,24 +43,24 @@ const uint8_t Codes[CHARACTERS][STRIPCODELENGTH] = {
 	{ SB, LW, LB, SW, SB, SW, LB, SW, SB }
 };
 
-const uint8_t Cap[STRIPCODELENGTH] = { SB, LW, SB, SW, LB, SW, LB, SW, SB };
+const uint8_t Cap[stripcode_len] = { SB, LW, SB, SW, LB, SW, LB, SW, SB };
 
 uint8_t Check_Validity(const char Input) {
-	for (uint8_t Counter = 0; Counter < CHARACTERS; Counter++) {
-		if (To_Lower(Input) == Allowed[Counter]) {
-			return Counter;
+	for (uint8_t C1 = 0; C1 < characters; C1++) {
+		if (To_Lower(Input) == Allowed[C1]) {
+			return C1;
 		}
 	}
-	return INVALID;
+	return invalid;
 }
 
 uint8_t* Get_Subcode(char Input) {
 	uint8_t Candidate = Check_Validity(Input);
-	static uint8_t Yield[SUBCODELENGTH];
-	for (uint8_t Counter = 0; Counter < STRIPCODELENGTH; Counter++) {
-		Yield[Counter] = Codes[Candidate][Counter];
+	static uint8_t Yield[subcode_len];
+	for (uint8_t C1 = 0; C1 < stripcode_len; C1++) {
+		Yield[C1] = Codes[Candidate][C1];
 	}
-	Yield[STRIPCODELENGTH] = SW;
+	Yield[stripcode_len] = SW;
 	return Yield;
 }
 
@@ -68,61 +68,42 @@ void Generate39(char* Input) {
 	uint32_t Digits = 1;
 	uint32_t Raw_Digits = 0;
 	while (Input[Raw_Digits] != '\0') {
-		if (Check_Validity(Input[Raw_Digits]) != INVALID) {
+		if (Check_Validity(Input[Raw_Digits]) != invalid) {
 			Digits++;
 		}
 		Raw_Digits++;
 	}
-	uint8_t* Content = malloc(sizeof(uint8_t) * SUBCODELENGTH * (Digits + 1));
-	for (uint8_t Counter = 0; Counter < STRIPCODELENGTH; Counter++) {
-		Content[Counter] = Cap[Counter];
+	uint8_t* Content = malloc(sizeof(uint8_t) * subcode_len * (Digits + 1));
+	for (uint8_t C1 = 0; C1 < stripcode_len; C1++) {
+		Content[C1] = Cap[C1];
 	}
-	Content[STRIPCODELENGTH] = SW;
+	Content[stripcode_len] = SW;
 	uint32_t Index = 1;
-	for (uint32_t Counter1 = 0; Counter1 <= Raw_Digits; Counter1++) {
-		if (Check_Validity(Input[Counter1]) != INVALID) {
-			for (uint8_t Counter2 = 0; Counter2 < SUBCODELENGTH; Counter2++) {
-				Content[(Index * SUBCODELENGTH) + Counter2] =
-					Get_Subcode(Input[Counter1])[Counter2];
+	for (uint32_t C1 = 0; C1 <= Raw_Digits; C1++) {
+		if (Check_Validity(Input[C1]) != invalid) {
+			for (uint8_t C2 = 0; C2 < subcode_len; C2++) {
+				Content[(Index * subcode_len) + C2] = Get_Subcode(Input[C1])[C2];
 			}
 			Index++;
 		}
 	}
-	for (uint8_t Counter = 0; Counter < STRIPCODELENGTH; Counter++) {
-		Content[(Index * SUBCODELENGTH) + Counter] = Cap[Counter];
+	for (uint8_t C1 = 0; C1 < stripcode_len; C1++) {
+		Content[(Index * subcode_len) + C1] = Cap[C1];
 	}
 	uint32_t Width = 0;
-	for (uint32_t Counter = 0; Counter < (Digits * SUBCODELENGTH) - 1; Counter++) {
-		if (Content[Counter] == LW || Content[Counter] == LB) {
-			Width += WIDEMULTIPLIER;
-		} else {
-			Width++;
-		}
+	for (uint32_t C1 = 0; C1 < (Digits * subcode_len) - 1; C1++) {
+		Width += (Content[C1] == LW || Content[C1] == LB) ? wide_multiplier : 1;
 	}
-	unsigned char* Data_Row = calloc((((Width + 7) / 8) + 3) & ~3, sizeof(char));
+	bool* Data_Row = malloc(sizeof(bool) * Width);
 	Index = 0;
-	uint8_t Marker;
+	bool Marker = false;
 	uint8_t Backlog = 0;
-	for (uint32_t Counter = 0; Counter < Width; Counter++) {
-		if (Backlog == 0) {
-			if (Content[Index] == SW || Content[Index] == LW) {
-				Marker = 1;
-			} else {
-				Marker = 0;
-			}
-			if (Content[Index] == LW || Content[Index] == LB) {
-				Backlog = WIDEMULTIPLIER - 1;
-			}
+	for (uint32_t C1 = 0; C1 < (Digits * subcode_len) - 1; C1++) {
+		Marker = (Content[C1] == SW || Content[C1] == LW);
+		bool Extended = (Content[C1] == LW || Content[C1] == LB);
+		for (uint8_t C2 = 0; C2 < ((Extended) ? wide_multiplier : 1); C2++) {
+			Data_Row[Index] = Marker;
 			Index++;
-		} else {
-			Backlog--;
-		}
-		uint32_t Byte_Index = Counter / 8;
-		uint8_t Bit_Index = 7 - (Counter % 8);
-		if (Marker == 1) {
-			Data_Row[Byte_Index] &= ~(1 << Bit_Index);
-		} else {
-			Data_Row[Byte_Index] |= (1 << Bit_Index);
 		}
 	}
 	Write_BMP(Width, Data_Row);
